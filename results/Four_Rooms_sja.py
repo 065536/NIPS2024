@@ -1,15 +1,8 @@
-import os
-import sys
-from os.path import dirname, abspath
-sys.path.append(dirname(dirname(abspath(__file__))))
-
-import gym
-
 from agents.DQN_agents.DDQN import DDQN
+from agents.hierarchical_agents.h_DQN import h_DQN
 from environments.Four_Rooms_Environment import Four_Rooms_Environment
 from agents.Trainer import Trainer
 from utilities.data_structures.Config import Config
-from agents.hierarchical_agents.h_DQN import h_DQN
 
 config = Config()
 config.seed = 1
@@ -56,6 +49,46 @@ config.hyperparameters = {
         "exploration_cycle_episodes_length": None,
         "learning_iterations": 1,
         "clip_rewards": False
+    },
+
+    "h_DQN" :{
+        "CONTROLLER" : {
+            "linear_hidden_units": [50, 30],
+            "learning_rate": 0.01,
+            "buffer_size": 40000,
+            "batch_size": 256,
+            "final_layer_activation": "None",
+            "columns_of_data_to_be_embedded": [0],
+            "embedding_dimensions": embedding_dimensions,
+            "batch_norm": False,
+            "gradient_clipping_norm": 5,
+            "update_every_n_steps": 1,
+            "epsilon_decay_rate_denominator": 10,
+            "discount_rate": 0.99,
+            "tau": 0.01,
+            "exploration_cycle_episodes_length": None,
+            "learning_iterations": 1,
+            "clip_rewards": False
+        },
+
+        "META_CONTROLLER" : {
+            "linear_hidden_units": [50, 30],
+            "learning_rate": 0.001,
+            "buffer_size": 40000,
+            "batch_size": 256,
+            "final_layer_activation": "None",
+            "columns_of_data_to_be_embedded": [0],
+            "embedding_dimensions": embedding_dimensions,
+            "batch_norm": False,
+            "gradient_clipping_norm": 5,
+            "update_every_n_steps": 1,
+            "epsilon_decay_rate_denominator": 10,
+            "discount_rate": 0.99,
+            "tau": 0.01,
+            "exploration_cycle_episodes_length": None,
+            "learning_iterations": 1,
+            "clip_rewards": False
+        }
     },
 
     "SNN_HRL": {
@@ -154,53 +187,14 @@ config.hyperparameters = {
         "learning_iterations": 1,
         "tau": 0.01
 
-    },
-
-    "h_DQN":{
-        "CONTROLLER": {
-            "batch_size": 256,
-            "learning_rate": 0.01,
-            "buffer_size": 40000,
-            "linear_hidden_units": [20, 10],
-            "final_layer_activation": "None",
-            "columns_of_data_to_be_embedded": [0, 1, 2],
-            "embedding_dimensions": [[config.environment.observation_space.n,
-                                      max(4, int(config.environment.observation_space.n / 10.0))],
-                                     [config.environment.observation_space.n,
-                                      max(4, int(config.environment.observation_space.n / 10.0))],
-                                     [max(4, int(config.environment.observation_space.n / 10.0)),
-                                      max(4, int(config.environment.observation_space.n / 10.0))]],
-            "batch_norm": False,
-            "gradient_clipping_norm": 5,
-            "update_every_n_steps": 1,
-            "epsilon_decay_rate_denominator": 1500,
-            "discount_rate": 0.999,
-            "learning_iterations": 1
-        },
-        "META_CONTROLLER": {
-            "batch_size": 256,
-            "learning_rate": 0.001,
-            "buffer_size": 40000,
-            "linear_hidden_units": [20, 10],
-            "final_layer_activation": "None",
-            "columns_of_data_to_be_embedded": [0, 1],
-            "embedding_dimensions": [[config.environment.observation_space.n,
-                                      max(4, int(config.environment.observation_space.n / 10.0))],
-                                     [config.environment.observation_space.n,
-                                      max(4, int(config.environment.observation_space.n / 10.0))]],
-            "batch_norm": False,
-            "gradient_clipping_norm": 5,
-            "update_every_n_steps": 1,
-            "epsilon_decay_rate_denominator": 2500,
-            "discount_rate": 0.999,
-            "learning_iterations": 1
-        }
     }
+
+
 }
 
 if __name__== '__main__':
 
-    # AGENTS = [DDQN] #DIAYN] # A3C] #SNN_HRL] #, DDQN]
+
     AGENTS = [h_DQN] #DIAYN] # A3C] #SNN_HRL] #, DDQN]
     trainer = Trainer(config, AGENTS)
     trainer.run_games_for_agents()

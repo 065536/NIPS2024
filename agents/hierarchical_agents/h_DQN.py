@@ -14,12 +14,12 @@ class h_DQN(Base_Agent):
         self.controller_config = copy.deepcopy(config)
         self.controller_config.hyperparameters = self.controller_config.hyperparameters["CONTROLLER"]
         self.controller = DDQN(self.controller_config)
-        self.controller.q_network_local = self.create_NN(input_dim=self.state_size*2, output_dim=self.action_size,
+        self.controller.q_network_local = self.create_NN(input_dim=self.state_size*3, output_dim=self.action_size,
                                                          key_to_use="CONTROLLER")
         self.meta_controller_config = copy.deepcopy(config)
         self.meta_controller_config.hyperparameters = self.meta_controller_config.hyperparameters["META_CONTROLLER"]
         self.meta_controller = DDQN(self.meta_controller_config)
-        self.meta_controller.q_network_local = self.create_NN(input_dim=self.state_size, output_dim=config.environment.observation_space.n,
+        self.meta_controller.q_network_local = self.create_NN(input_dim=self.state_size*2, output_dim=config.environment.observation_space.n,
                                                               key_to_use="META_CONTROLLER")
         self.rolling_intrinsic_rewards = []
         self.goals_seen = []

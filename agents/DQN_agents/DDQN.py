@@ -13,6 +13,4 @@ class DDQN(DQN_With_Fixed_Q_Targets):
         The reasoning behind this is that it will help stop the network from overestimating q values"""
         max_action_indexes = self.q_network_local(next_states).detach().argmax(1)
         Q_targets_next = self.q_network_target(next_states).gather(1, max_action_indexes.unsqueeze(1))
-        return Q_targets_next 
-            
-
+        return Q_targets_next
