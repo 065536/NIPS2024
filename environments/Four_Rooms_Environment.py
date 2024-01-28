@@ -76,7 +76,7 @@ class Four_Rooms_Environment(gym.Env):
                     "desired_goal": np.array(self.desired_goal),
                     "achieved_goal": np.array(self.achieved_goal)}
         else:
-            self.s = np.array(self.state[:self.state_only_dimension])
+            self.s = np.array(self.state[:self.state_only_dimension])  
         return self.s
 
 
@@ -107,8 +107,8 @@ class Four_Rooms_Environment(gym.Env):
                 "desired_goal": np.array(self.desired_goal),
                 "achieved_goal": np.array(self.achieved_goal)}
         else:
-            self.s = np.array(self.next_state[:self.state_only_dimension])
-
+            # self.s = np.array(self.next_state[:self.state_only_dimension])
+            self.s = self.state
         return self.s, self.reward, self.done, {}
 
     def determine_which_action_will_actually_occur(self, desired_action):

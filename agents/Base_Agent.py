@@ -197,7 +197,7 @@ class Base_Agent(object):
         """Conducts an action in the environment"""
         self.next_state, self.reward, self.done, _ = self.environment.step(action)
         self.total_episode_score_so_far += self.reward
-        if self.hyperparameters["clip_rewards"]: self.reward =  max(min(self.reward, 1.0), -1.0)
+        # if self.hyperparameters["clip_rewards"]: self.reward =  max(min(self.reward, 1.0), -1.0)
 
 
     def save_and_print_result(self):

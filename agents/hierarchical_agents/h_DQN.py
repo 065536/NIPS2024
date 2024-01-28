@@ -50,17 +50,18 @@ class h_DQN(Base_Agent):
             self.meta_controller_state = self.environment.state
             self.subgoal = self.meta_controller.pick_action(state=self.meta_controller_state)
             self.goals_seen.append(self.subgoal)
-            self.subgoal_achieved = False
-            self.state = np.concatenate((self.environment.state, np.array([self.subgoal])))
+            self.subgoal_achieved = False   
             self.cumulative_meta_controller_reward = 0
 
             while not (self.episode_over or self.subgoal_achieved):
+                self.state = np.concatenate((self.environment.state, np.array([self.subgoal])))
                 self.pick_and_conduct_controller_action()
                 self.update_data()
                 if self.time_to_learn(self.controller.memory, self.global_step_number, "CONTROLLER"): #means it is time to train controller
                     for _ in range(self.hyperparameters["CONTROLLER"]["learning_iterations"]):
                         self.controller.learn()
-                self.save_experience(memory=self.controller.memory, experience=(self.state, self.action, self.reward, self.next_state, self.done))
+                self.next_state_train = np.concatenate((self.next_state, np.array([self.subgoal])))
+                self.save_experience(memory=self.controller.memory, experience=(self.state, self.action, self.reward, self.next_state_train, self.done))
                 self.state = self.next_state #this is to set the state for the next iteration
                 self.global_step_number += 1
                 episode_intrinsic_rewards.append(self.reward)
@@ -90,29 +91,29 @@ class h_DQN(Base_Agent):
         """Picks and conducts an action for controller"""
         self.action =  self.controller.pick_action(state=self.state)
         self.controller_actions.append(self.action)
-        self.conduct_action()
+        self.conduct_action(self.action)
 
     def update_data(self):
         """Updates stored data for controller and meta-controller. It must occur in the order shown"""
-        self.episode_over = self.environment.get_done()
+        self.episode_over = self.done
         self.update_controller_data()
         self.update_meta_controller_data()
 
     def update_controller_data(self):
         """Gets the next state, reward and done information from the environment"""
-        environment_next_state = self.environment.get_next_state()
-        assert environment_next_state.shape[0] == 1
-        self.next_state = np.concatenate((environment_next_state, np.array([self.subgoal])))
+        environment_next_state = self.next_state
+        assert len(environment_next_state) == 2
+        # self.next_state = np.concatenate((environment_next_state, np.array([self.subgoal])))
         self.subgoal_achieved = environment_next_state[0] == self.subgoal
         self.reward = 1.0 * self.subgoal_achieved
         self.done = self.subgoal_achieved or self.episode_over
 
     def update_meta_controller_data(self):
         """Updates data relating to meta controller"""
-        self.cumulative_meta_controller_reward += self.environment.get_reward()
-        self.total_episode_score_so_far += self.environment.get_reward()
+        self.cumulative_meta_controller_reward += self.reward
+        # self.total_episode_score_so_far += self.environment.get_reward()
         if self.done:
-            self.meta_controller_next_state = self.environment.get_next_state()
+            self.meta_controller_next_state = self.next_state
 
     def time_to_learn(self, memory, steps_taken, controller_name):
         """Boolean indicating whether it is time for meta-controller or controller to learn"""

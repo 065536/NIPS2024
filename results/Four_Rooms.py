@@ -33,7 +33,7 @@ config.standard_deviation_results = 1.0
 config.runs_per_agent = 3
 config.use_GPU = False
 config.overwrite_existing_results_file = False
-config.randomise_random_seed = True
+config.randomise_random_seed = False
 config.save_model = False
 
 
@@ -168,7 +168,7 @@ config.hyperparameters = {
                                       max(4, int(config.environment.observation_space.n / 10.0))],
                                      [config.environment.observation_space.n,
                                       max(4, int(config.environment.observation_space.n / 10.0))],
-                                     [max(4, int(config.environment.observation_space.n / 10.0)),
+                                     [config.environment.observation_space.n,
                                       max(4, int(config.environment.observation_space.n / 10.0))]],
             "batch_norm": False,
             "gradient_clipping_norm": 5,
