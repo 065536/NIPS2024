@@ -175,10 +175,11 @@ config.hyperparameters = {
             "update_every_n_steps": 1,
             "epsilon_decay_rate_denominator": 1500,
             "discount_rate": 0.999,
-            "learning_iterations": 1
+            "learning_iterations": 1,
+            "tau" : 0.01
         },
         "META_CONTROLLER": {
-            "batch_size": 256,
+            "batch_size": 1,
             "learning_rate": 0.001,
             "buffer_size": 40000,
             "linear_hidden_units": [20, 10],
@@ -193,7 +194,8 @@ config.hyperparameters = {
             "update_every_n_steps": 1,
             "epsilon_decay_rate_denominator": 2500,
             "discount_rate": 0.999,
-            "learning_iterations": 1
+            "learning_iterations": 1,
+            "tau" : 0.01
         }
     }
 }
