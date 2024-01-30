@@ -49,6 +49,7 @@ class DQN(Base_Agent):
         if len(state.shape) < 2: state = state.unsqueeze(0)
         self.q_network_local.eval() #puts network in evaluation mode
         with torch.no_grad():
+            print(f"self.q_network_local.output dim:{self.q_network_local.layers_info[-1]}")
             action_values = self.q_network_local(state)
         self.q_network_local.train() #puts network back in training mode
         action = self.exploration_strategy.perturb_action_for_exploration_purposes({"action_values": action_values,
