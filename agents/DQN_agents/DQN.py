@@ -15,7 +15,7 @@ class DQN(Base_Agent):
     def __init__(self, config):
         Base_Agent.__init__(self, config)
         self.memory = Replay_Buffer(self.hyperparameters["buffer_size"], self.hyperparameters["batch_size"], config.seed, self.device)
-        self.q_network_local = self.create_NN(input_dim=self.state_size*config.magic_number, output_dim=self.action_size)
+        self.q_network_local = self.create_NN(input_dim=self.state_size*config.magic_number, output_dim=config.output_dim_)
         self.q_network_optimizer = optim.Adam(self.q_network_local.parameters(),
                                               lr=self.hyperparameters["learning_rate"], eps=1e-4)
         self.exploration_strategy = Epsilon_Greedy_Exploration(config)

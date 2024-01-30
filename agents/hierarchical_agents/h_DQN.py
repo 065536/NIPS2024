@@ -14,12 +14,14 @@ class h_DQN(Base_Agent):
         self.controller_config = copy.deepcopy(config)
         self.controller_config.hyperparameters = self.controller_config.hyperparameters["CONTROLLER"]
         self.controller_config.magic_number = 3
+        self.controller_config.output_dim_ = self.action_size
         self.controller = DDQN(self.controller_config)
         self.controller.q_network_local = self.create_NN(input_dim=self.state_size*3, output_dim=self.action_size,
                                                          key_to_use="CONTROLLER")
         self.meta_controller_config = copy.deepcopy(config)
         self.meta_controller_config.hyperparameters = self.meta_controller_config.hyperparameters["META_CONTROLLER"]
         self.meta_controller_config.magic_number = 2
+        self.meta_controller_config.output_dim_ = config.environment.observation_space.n
         self.meta_controller = DDQN(self.meta_controller_config)
         self.meta_controller.q_network_local = self.create_NN(input_dim=self.state_size*2, output_dim=config.environment.observation_space.n,
                                                               key_to_use="META_CONTROLLER")
