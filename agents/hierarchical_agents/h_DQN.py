@@ -48,18 +48,33 @@ class h_DQN(Base_Agent):
     def step(self):
 
         self.episode_steps = 0
+        copied_grid = copy.deepcopy(self.environment.grid)
+        for row in range(self.environment.grid_height):
+            for col in range(self.environment.grid_width):
+                if copied_grid[row][col] == self.environment.wall_space_name:
+                    copied_grid[row][col] = 1
+                elif copied_grid[row][col] == self.environment.blank_space_name:
+                    copied_grid[row][col] = 0
+                elif copied_grid[row][col] == self.environment.user_space_name:
+                    copied_grid[row][col] = 1
+                elif copied_grid[row][col] == self.environment.goal_space_name:
+                    copied_grid[row][col] = 1
+                else:
+                    raise ValueError("Invalid values on the grid")
+        copied_grid = np.array(copied_grid)
+        meta_controller_mask = copied_grid.flatten()
 
         while not self.episode_over:
             episode_intrinsic_rewards = []
             self.meta_controller_state = self.environment.state
-            self.subgoal = self.meta_controller.pick_action(state=self.meta_controller_state)
+            self.subgoal = self.meta_controller.pick_action(state=self.meta_controller_state, mask = meta_controller_mask)
             self.goals_seen.append(self.subgoal)
             self.subgoal_achieved = False   
             self.cumulative_meta_controller_reward = 0
-
+            
             while not (self.episode_over or self.subgoal_achieved):
                 self.state = np.concatenate((self.environment.state, np.array([self.subgoal])))
-                self.pick_and_conduct_controller_action()
+                self.pick_and_conduct_controller_action(self.subgoal)
                 self.update_data()
                 if self.time_to_learn(self.controller.memory, self.global_step_number, "CONTROLLER"): #means it is time to train controller
                     for _ in range(self.hyperparameters["CONTROLLER"]["learning_iterations"]):
@@ -91,11 +106,11 @@ class h_DQN(Base_Agent):
         self.controller.episode_number += 1
         self.meta_controller.episode_number += 1
 
-    def pick_and_conduct_controller_action(self):
+    def pick_and_conduct_controller_action(self, option = None):
         """Picks and conducts an action for controller"""
         self.action =  self.controller.pick_action(state=self.state)
         self.controller_actions.append(self.action)
-        self.conduct_action(self.action)
+        self.conduct_action(self.action, option)
 
     def update_data(self):
         """Updates stored data for controller and meta-controller. It must occur in the order shown"""

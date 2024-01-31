@@ -37,7 +37,7 @@ class DQN(Base_Agent):
             self.global_step_number += 1
         self.episode_number += 1
 
-    def pick_action(self, state=None):
+    def pick_action(self, state=None, mask=None):
         """Uses the local Q network and an epsilon greedy policy to pick an action"""
         # PyTorch only accepts mini-batches and not single observations so we have to use unsqueeze to add
         # a "fake" dimension to make it a mini-batch rather than a single observation
@@ -49,7 +49,7 @@ class DQN(Base_Agent):
         if len(state.shape) < 2: state = state.unsqueeze(0)
         self.q_network_local.eval() #puts network in evaluation mode
         with torch.no_grad():
-            action_values = self.q_network_local(state)
+            action_values = self.q_network_local(state, mask)
         self.q_network_local.train() #puts network back in training mode
         action = self.exploration_strategy.perturb_action_for_exploration_purposes({"action_values": action_values,
                                                                                     "turn_off_exploration": self.turn_off_exploration,
