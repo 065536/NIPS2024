@@ -35,7 +35,7 @@ config.use_GPU = False
 config.overwrite_existing_results_file = False
 config.randomise_random_seed = False
 config.save_model = False
-
+config.render = True
 
 config.hyperparameters = {
     "DQN_Agents": {
@@ -158,7 +158,7 @@ config.hyperparameters = {
 
     "h_DQN":{
         "CONTROLLER": {
-            "batch_size": 256,
+            "batch_size": 32,
             "learning_rate": 0.01,
             "buffer_size": 40000,
             "linear_hidden_units": [20, 10],
@@ -175,10 +175,11 @@ config.hyperparameters = {
             "update_every_n_steps": 1,
             "epsilon_decay_rate_denominator": 1500,
             "discount_rate": 0.999,
-            "learning_iterations": 1
+            "learning_iterations": 1,
+            "tau" : 0.01
         },
         "META_CONTROLLER": {
-            "batch_size": 256,
+            "batch_size": 32,
             "learning_rate": 0.001,
             "buffer_size": 40000,
             "linear_hidden_units": [20, 10],
@@ -193,7 +194,8 @@ config.hyperparameters = {
             "update_every_n_steps": 1,
             "epsilon_decay_rate_denominator": 2500,
             "discount_rate": 0.999,
-            "learning_iterations": 1
+            "learning_iterations": 1,
+            "tau":0.01
         }
     }
 }
@@ -204,5 +206,4 @@ if __name__== '__main__':
     AGENTS = [h_DQN] #DIAYN] # A3C] #SNN_HRL] #, DDQN]
     trainer = Trainer(config, AGENTS)
     trainer.run_games_for_agents()
-
 
