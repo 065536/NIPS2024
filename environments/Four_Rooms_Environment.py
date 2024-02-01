@@ -9,6 +9,7 @@ from gym import spaces
 from gym.utils import seeding
 from matplotlib import pyplot
 from random import randint
+import time
 
 class Four_Rooms_Environment(gym.Env):
     """Four rooms game environment as described in paper http://www-anw.cs.umass.edu/~barto/courses/cs687/Sutton-Precup-Singh-AIJ99.pdf"""
@@ -80,7 +81,7 @@ class Four_Rooms_Environment(gym.Env):
         return self.s
 
 
-    def step(self, desired_action):
+    def step(self, desired_action, option=None,render=None,):
         if type(desired_action) is np.ndarray:
             assert desired_action.shape[0] == 1
             assert len(desired_action.shape) == 1
@@ -101,7 +102,8 @@ class Four_Rooms_Environment(gym.Env):
             else: self.done = False
         self.achieved_goal = self.next_state[:self.state_only_dimension]
         self.state = self.next_state
-
+        if render:
+            self.visualise_current_grid(option)
         if self.random_goal_place:
             self.s = {"observation": np.array(self.next_state[:self.state_only_dimension]),
                 "desired_goal": np.array(self.desired_goal),
@@ -229,7 +231,7 @@ class Four_Rooms_Environment(gym.Env):
         for row in range(len(self.grid)):
             print(self.grid[row])
 
-    def visualise_current_grid(self):
+    def visualise_current_grid(self,option=None):
         """Visualises the current grid"""
         copied_grid = copy.deepcopy(self.grid)
         for row in range(self.grid_height):
@@ -245,10 +247,18 @@ class Four_Rooms_Environment(gym.Env):
                 else:
                     raise ValueError("Invalid values on the grid")
         copied_grid = np.array(copied_grid)
-        cmap = mpl.colors.ListedColormap(["black", "white", "blue", "red"])
-        bounds = [-101, -1, 1, 11, 21]
+        if option is not None:
+            y, x = option // self.grid_height, option % self.grid_height
+            copied_grid[x][y] = 30
+            cmap = mpl.colors.ListedColormap(["black", "white", "blue", "red", "green"])  # Add "green" for the new block
+            bounds = [-101, -1, 1, 11, 21, 31]  # Add the new value to bounds
+        else:
+            cmap = mpl.colors.ListedColormap(["black", "white", "blue", "red"])
+            bounds = [-101, -1, 1, 11, 21]
         norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
         pyplot.imshow(copied_grid, interpolation='nearest',
                             cmap=cmap, norm=norm)
-        print("Black = wall, White = empty, Blue = user, Red = goal")
-        pyplot.show()
+        # print("Black = wall, White = empty, Blue = user, Red = goal")
+        pyplot.ion()
+        pyplot.pause(0.05)
+        pyplot.ioff()
