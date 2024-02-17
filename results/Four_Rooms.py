@@ -35,7 +35,7 @@ config.use_GPU = False
 config.overwrite_existing_results_file = False
 config.randomise_random_seed = False
 config.save_model = False
-config.render = True
+config.render = False
 
 
 config.hyperparameters = {

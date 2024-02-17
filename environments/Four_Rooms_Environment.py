@@ -58,7 +58,7 @@ class Four_Rooms_Environment(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def reset(self):
+    def reset(self, loc = None):
         """Resets the environment and returns the start state"""
         self.grid = self.create_grid()
         self.place_goal()
@@ -206,6 +206,12 @@ class Four_Rooms_Environment(gym.Env):
         else:
             self.current_goal_location = (3, 3)
             self.grid[3][3] = self.goal_space_name
+
+    def set_goal(self, loc):
+        #loc is a number
+        y, x = loc // self.grid_width, loc % self.grid_width
+        self.current_goal_location = (x, y)
+        self.grid[x][y] = self.goal_space_name
 
     def randomly_place_something(self, thing_name, invalid_places):
         """Randomly places a thing called thing_name on any square that doesn't have an invalid item on it"""
