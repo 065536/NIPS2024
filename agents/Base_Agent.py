@@ -195,6 +195,7 @@ class Base_Agent(object):
 
     def conduct_action(self, action, option):
         """Conducts an action in the environment"""
+        self.action = action
         self.next_state, self.reward, self.done, _ = self.environment.step(action, option, self.config.render)
         self.total_episode_score_so_far += self.reward
         # if self.hyperparameters["clip_rewards"]: self.reward =  max(min(self.reward, 1.0), -1.0)

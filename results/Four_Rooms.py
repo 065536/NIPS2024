@@ -14,8 +14,8 @@ from agents.hierarchical_agents.h_DQN import h_DQN
 config = Config()
 config.seed = 1
 
-height = 15
-width = 15
+height = 13
+width = 13
 random_goal_place = False
 num_possible_states = (height * width) ** (1 + 1*random_goal_place)
 embedding_dimensions = [[num_possible_states, 20]]
@@ -180,7 +180,7 @@ config.hyperparameters = {
             "tau" : 0.01
         },
         "META_CONTROLLER": {
-            "batch_size": 32,
+           "batch_size": 32,
             "learning_rate": 0.001,
             "buffer_size": 40000,
             "linear_hidden_units": [20, 10],
@@ -197,6 +197,41 @@ config.hyperparameters = {
             "discount_rate": 0.999,
             "learning_iterations": 1,
             "tau" : 0.01
+        }
+    },
+
+    "h_DQN_with_MOC":{
+        "CONTROLLER": {
+            "batch_size": 256,
+            "learning_rate": 0.01,
+            "buffer_size": 40000,
+            "linear_hidden_units": [20, 10],
+            "final_layer_activation": "None",
+            "columns_of_data_to_be_embedded": [0, 1, 2],
+            "embedding_dimensions": [[config.environment.observation_space.n,
+                                      max(4, int(config.environment.observation_space.n / 10.0))],
+                                     [config.environment.observation_space.n,
+                                      max(4, int(config.environment.observation_space.n / 10.0))],
+                                     [config.environment.observation_space.n,
+                                      max(4, int(config.environment.observation_space.n / 10.0))]],
+            "batch_norm": False,
+            "gradient_clipping_norm": 5,
+            "update_every_n_steps": 1,
+            "epsilon_decay_rate_denominator": 1500,
+            "discount_rate": 0.999,
+            "learning_iterations": 1,
+            "tau" : 0.01
+        },
+        "META_CONTROLLER": {
+            "action_temperature": 1e-2,
+            "option_temperature": 1e-1,
+            "noptions": config.environment.observation_space.n,
+            "discount": 0.99,
+            "lr_term": 0.8,
+            "lr_intra": 0.8,
+            "lr_critic": 0.8,
+            "eta": 0.3,
+            "multi_option": False,
         }
     }
 }
