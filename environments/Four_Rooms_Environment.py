@@ -37,6 +37,8 @@ class Four_Rooms_Environment(gym.Env):
         self.num_possible_states = self.grid_height * self.grid_width
         self.action_space = spaces.Discrete(4)
 
+        self.max_distance = 1
+
         if self.random_goal_place:
             self.observation_space = spaces.Dict(dict(
                 desired_goal=spaces.Box(0, self.num_possible_states, shape=(1,), dtype='float32'),
@@ -96,7 +98,10 @@ class Four_Rooms_Environment(gym.Env):
             self.reward = self.reward_for_achieving_goal
             self.done = True
         else:
-            self.reward = self.step_reward_for_not_achieving_goal
+            desired_goal = self.location_to_state(self.current_goal_location)
+            achieved_goal = self.location_to_state(self.current_user_location)
+            self.max_distance = max(self.max_distance, abs(desired_goal - achieved_goal))
+            self.reward = -1
             if self.step_count >= self.max_episode_steps: self.done = True
             else: self.done = False
         self.achieved_goal = self.next_state[:self.state_only_dimension]

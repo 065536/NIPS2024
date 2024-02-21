@@ -8,8 +8,10 @@ import torch
 import time
 # import tensorflow as tf
 from nn_builder.pytorch.NN import NN
-# from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 from torch.optim import optimizer
+
+writer = SummaryWriter(log_dir="/logs")
 
 class Base_Agent(object):
 
@@ -191,6 +193,7 @@ class Base_Agent(object):
         time_taken = time.time() - start
         if show_whether_achieved_goal: self.show_whether_achieved_goal()
         if self.config.save_model: self.locally_save_policy()
+        writer.close()
         return self.game_full_episode_scores, self.rolling_results, time_taken
 
     def conduct_action(self, action):
@@ -226,6 +229,7 @@ class Base_Agent(object):
         sys.stdout.write(text.format(len(self.game_full_episode_scores), self.rolling_results[-1], self.max_rolling_score_seen,
                                      self.game_full_episode_scores[-1], self.max_episode_score_seen))
         sys.stdout.flush()
+        writer.add_scalar(tag = "score", scalar_value = self.game_full_episode_scores[-1], global_step = len(self.game_full_episode_scores))
 
     def show_whether_achieved_goal(self):
         """Prints out whether the agent achieved the environment target goal"""

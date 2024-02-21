@@ -2,6 +2,7 @@ import random
 import torch
 import sys
 from contextlib import closing
+import numpy as np
 #
 # from pathos.multiprocessing import ProcessingPool as Pool
 
@@ -50,11 +51,13 @@ class Parallel_Experience_Generator(object):
         while not done:
             action = self.pick_action(self.policy, state, epsilon_exploration)
             next_state, reward, done, _ = self.environment.step(action)
+            state = [state[0]]
             if self.hyperparameters["clip_rewards"]: reward = max(min(reward, 1.0), -1.0)
             episode_states.append(state)
             episode_actions.append(action)
             episode_rewards.append(reward)
             state = next_state
+            # self.environment.visualise_current_grid()
         return episode_states, episode_actions, episode_rewards
 
     def reset_game(self):
@@ -71,8 +74,9 @@ class Parallel_Experience_Generator(object):
             if random.random() <= epsilon_exploration:
                 action = random.randint(0, self.action_size - 1)
                 return action
-
+        state = np.array(state[0])
         state = torch.from_numpy(state).float().unsqueeze(0)
+        if len(state.shape) < 2: state = state.unsqueeze(0)
         actor_output = policy.forward(state)
         if self.action_choice_output_columns is not None:
             actor_output = actor_output[:, self.action_choice_output_columns]

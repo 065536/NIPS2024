@@ -43,8 +43,13 @@ class DQN(Base_Agent):
         # a "fake" dimension to make it a mini-batch rather than a single observation
         if state is None: state = self.state
         if isinstance(state, np.int64) or isinstance(state, int): state = np.array([state])
+<<<<<<< Updated upstream
+=======
+        if isinstance(state, list):  state = np.array(state)
+>>>>>>> Stashed changes
         state = torch.from_numpy(state).float().unsqueeze(0).to(self.device)
         if len(state.shape) < 2: state = state.unsqueeze(0)
+        # print(state)
         self.q_network_local.eval() #puts network in evaluation mode
         with torch.no_grad():
             action_values = self.q_network_local(state)
