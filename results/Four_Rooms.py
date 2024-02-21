@@ -2,11 +2,8 @@ from agents.DQN_agents.DDQN import DDQN
 from environments.Four_Rooms_Environment import Four_Rooms_Environment
 from agents.Trainer import Trainer
 from utilities.data_structures.Config import Config
-<<<<<<< Updated upstream
-=======
 from agents.hierarchical_agents.h_DQN import h_DQN
 from agents.policy_gradient_agents.PPO import PPO
->>>>>>> Stashed changes
 
 config = Config()
 config.seed = 1
@@ -151,11 +148,6 @@ config.hyperparameters = {
         "learning_iterations": 1,
         "tau": 0.01
 
-<<<<<<< Updated upstream
-    }
-
-
-=======
     },
 
     "h_DQN":{
@@ -253,19 +245,13 @@ config.hyperparameters = {
             "epsilon_decay_rate_denominator": 1,
             "clip_rewards": False
         },
->>>>>>> Stashed changes
 }
 
 if __name__== '__main__':
 
-<<<<<<< Updated upstream
-
-    AGENTS = [DDQN] #DIAYN] # A3C] #SNN_HRL] #, DDQN]
-=======
     # AGENTS = [DDQN] #DIAYN] # A3C] #SNN_HRL] #, DDQN]
     # AGENTS = [h_DQN] #DIAYN] # A3C] #SNN_HRL] #, DDQN]
     AGENTS = [PPO]
->>>>>>> Stashed changes
     trainer = Trainer(config, AGENTS)
     trainer.run_games_for_agents()
 
