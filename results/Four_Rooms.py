@@ -10,6 +10,7 @@ from environments.Four_Rooms_Environment import Four_Rooms_Environment
 from agents.Trainer import Trainer
 from utilities.data_structures.Config import Config
 from agents.hierarchical_agents.h_DQN import h_DQN
+from agents.hierarchical_agents.h_DQN_with_MOC import h_DQN_with_MOC
 
 config = Config()
 config.seed = 1
@@ -22,10 +23,12 @@ embedding_dimensions = [[num_possible_states, 20]]
 print("Num possible states ", num_possible_states)
 
 config.environment = Four_Rooms_Environment(height, width, stochastic_actions_probability=0.0, random_start_user_place=True, random_goal_place=random_goal_place)
+abs_path = os.path.dirname(os.path.abspath(__file__))
 
-config.num_episodes_to_run = 1000
-config.file_to_save_data_results = "Data_and_Graphs/Four_Rooms.pkl"
-config.file_to_save_results_graph = "Data_and_Graphs/Four_Rooms.png"
+config.num_episodes_to_run = 1
+config.file_to_save_data_results = os.path.join(abs_path, "dataAndGraphs/Four_Rooms.pkl")
+config.file_to_save_results_graph = os.path.join(abs_path, "dataAndGraphs/Four_Rooms.png")
+config.path_to_save_tensorboard = os.path.join(abs_path, "dataAndGraphs/logs")
 config.show_solution_score = False
 config.visualise_individual_results = False
 config.visualise_overall_agent_results = True
@@ -121,7 +124,6 @@ config.hyperparameters = {
 
     },
 
-
     "DIAYN": {
 
         "num_skills": 5,
@@ -137,7 +139,6 @@ config.hyperparameters = {
             "linear_hidden_units": [20, 10],
         }
     },
-
 
     "HRL": {
         "linear_hidden_units": [10, 5],
@@ -239,7 +240,7 @@ config.hyperparameters = {
 if __name__== '__main__':
 
     # AGENTS = [DDQN] #DIAYN] # A3C] #SNN_HRL] #, DDQN]
-    AGENTS = [h_DQN] #DIAYN] # A3C] #SNN_HRL] #, DDQN]
+    AGENTS = [h_DQN_with_MOC] #DIAYN] # A3C] #SNN_HRL] #, DDQN]
     trainer = Trainer(config, AGENTS)
     trainer.run_games_for_agents()
 

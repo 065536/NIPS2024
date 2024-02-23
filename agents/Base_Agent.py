@@ -11,6 +11,9 @@ from nn_builder.pytorch.NN import NN
 # from tensorboardX import SummaryWriter
 from torch.optim import optimizer
 
+from torch.utils.tensorboard import SummaryWriter
+import datetime
+
 class Base_Agent(object):
 
     def __init__(self, config):
@@ -44,6 +47,14 @@ class Base_Agent(object):
         self.turn_off_exploration = False
         gym.logger.set_level(40)  # stops it from printing an unnecessary warning
         self.log_game_info()
+        
+        self.current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+
+        self.loss = None
+        
+        if not os.path.exists(self.config.path_to_save_tensorboard):
+            os.makedirs(self.config.path_to_save_tensorboard)
+        self.writer = SummaryWriter()
 
     def step(self):
         """Takes a step in the game. This method must be overriden by any agent"""
@@ -227,6 +238,9 @@ class Base_Agent(object):
         sys.stdout.write(text.format(len(self.game_full_episode_scores), self.rolling_results[-1], self.max_rolling_score_seen,
                                      self.game_full_episode_scores[-1], self.max_episode_score_seen))
         sys.stdout.flush()
+        if self.loss is not None:
+            self.writer.add_scalar('Q network loss', self.loss, len(self.game_full_episode_scores))
+        self.writer.add_scalar("score", self.rolling_results[-1], len(self.game_full_episode_scores))
 
     def show_whether_achieved_goal(self):
         """Prints out whether the agent achieved the environment target goal"""

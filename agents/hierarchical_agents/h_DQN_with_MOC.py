@@ -2,34 +2,37 @@ import copy
 import numpy as np
 from agents.Base_Agent import Base_Agent
 from agents.DQN_agents.DDQN import DDQN
-from utils import *
+from .utils import *
+import torch
 
 class h_DQN_with_MOC(Base_Agent):
     """Implements hierarchical RL agent h-DQN from paper Kulkarni et al. (2016) https://arxiv.org/abs/1604.06057?context=stat
     Note also that this algorithm only works when we have discrete states and discrete actions currently because otherwise
     it is not clear what it means to achieve a subgoal state designated by the meta-controller"""
-    agent_name = "h-DQN"
+    agent_name = "h_DQN_with_MOC"
 
     def __init__(self, config):
         Base_Agent.__init__(self, config)
         self.controller_config = copy.deepcopy(config)
         self.controller_config.output_dim_ = self.action_size
+        self.controller_config.magic_number = 3
+        self.controller_config.hyperparameters = self.controller_config.hyperparameters["CONTROLLER"]
         self.controller = DDQN(self.controller_config)
         self.controller.q_network_local = self.create_NN(input_dim=self.state_size*3, output_dim=self.action_size,
                                                          key_to_use="CONTROLLER")
         
-        self.features = Tabular(self.env.observation_space.n)
-        self.nfeatures, self.nactions = len(self.features), self.env.action_space.n
+        self.features = Tabular(self.environment.observation_space.n)
+        self.nfeatures, self.nactions = len(self.features), self.environment.action_space.n
 
         self.meta_controller_config = copy.deepcopy(config)
         self.meta_controller_config.hyperparameters = self.meta_controller_config.hyperparameters["META_CONTROLLER"]
         self.meta_controller_config.output_dim_ = config.environment.observation_space.n
-        self.option_policies = [SoftmaxPolicy(self.nfeatures, self.nactions, self.meta_controller_config.action_temperature) for _ in range(self.meta_controller_config.noptions)]
-        self.option_terminations = [SigmoidTermination(self.nfeatures) for _ in range(self.meta_controller_config.noptions)]
-        self.meta_policy = SoftmaxPolicy(self.nfeatures, self.meta_controller_config.noptions, self.meta_controller_config.option_temperature)
-        self.critic = IntraOptionQLearning(self.meta_controller_config.discount, self.meta_controller_config.lr_critic, self.option_terminations, self.meta_policy.weights, self.meta_policy,self.meta_controller_config.noptions) 
-        self.termination_improvement= TerminationGradient(self.option_terminations, self.critic, self.meta_controller_config.lr_term, self.meta_controller_config.noptions)
-        self.intraoption_improvement = IntraOptionGradient(self.option_policies, self.meta_controller_config.lr_intra, self.meta_controller_config.discount, self.critic, self.meta_controller_config.noptions)
+        self.option_policies = [SoftmaxPolicy(self.nfeatures, self.nactions, self.meta_controller_config.hyperparameters["action_temperature"]) for _ in range(self.meta_controller_config.hyperparameters["noptions"])]
+        self.option_terminations = [SigmoidTermination(self.nfeatures) for _ in range(self.meta_controller_config.hyperparameters["noptions"])]
+        self.meta_policy = SoftmaxPolicy(self.nfeatures, self.meta_controller_config.hyperparameters["noptions"], self.meta_controller_config.hyperparameters["noptions"])
+        self.critic = IntraOptionQLearning(self.meta_controller_config.hyperparameters["discount"], self.meta_controller_config.hyperparameters["lr_critic"], self.option_terminations, self.meta_policy.weights, self.meta_policy,self.meta_controller_config.hyperparameters["noptions"]) 
+        self.termination_improvement= TerminationGradient(self.option_terminations, self.critic, self.meta_controller_config.hyperparameters["lr_term"], self.meta_controller_config.hyperparameters["noptions"])
+        self.intraoption_improvement = IntraOptionGradient(self.option_policies, self.meta_controller_config.hyperparameters["lr_intra"], self.meta_controller_config.hyperparameters["discount"], self.critic, self.meta_controller_config.hyperparameters["noptions"])
 
 
         self.rolling_intrinsic_rewards = []
@@ -79,9 +82,9 @@ class h_DQN_with_MOC(Base_Agent):
         while not self.episode_over:
             episode_intrinsic_rewards = []
             self.last_option = None
-            self.phi = self.features(self.env.reset())
-            self.option = self.meta_policy.sample(phi, self.meta_controller_mask)
-            self.critic.start(phi, self.option)
+            self.phi = self.features(self.environment.reset())
+            self.option = self.meta_policy.sample(self.phi, self.meta_controller_mask)
+            self.critic.start(self.phi, self.option)
 
             self.goals_seen.append(self.option)
             self.subgoal_achieved = False   
@@ -98,7 +101,7 @@ class h_DQN_with_MOC(Base_Agent):
 
                 if self.time_to_learn(self.controller.memory, self.global_step_number, "CONTROLLER"): #means it is time to train controller
                     for _ in range(self.hyperparameters["CONTROLLER"]["learning_iterations"]):
-                        self.controller.learn()
+                        self.loss = self.controller.learn()
                 self.next_state_train = np.concatenate((self.next_state, np.array([self.option])))
                 self.save_experience(memory=self.controller.memory, experience=(self.state, self.action, self.reward, self.next_state_train, self.done))
                 self.state = self.next_state #this is to set the state for the next iteration
@@ -114,6 +117,11 @@ class h_DQN_with_MOC(Base_Agent):
             print("Intrinsic Rewards -- {} -- ".format(np.mean(self.rolling_intrinsic_rewards[-100:])))
             print("Average controller action -- {} ".format(np.mean(self.controller_actions[-100:])))
             print("Latest subgoal -- {}".format(self.goals_seen[-1]))
+            # checkpoint = {
+            #     'epoch': self.episode_number,
+            #     'loss': loss.item()  
+            # }
+            # torch.save(checkpoint, f'model_checkpoint_epoch_{self.episode_number}.pt')
         self.episode_number += 1
         self.controller.episode_number += 1
 
@@ -133,7 +141,7 @@ class h_DQN_with_MOC(Base_Agent):
         environment_next_state = self.next_state
         assert len(environment_next_state) == 2
         # self.next_state = np.concatenate((environment_next_state, np.array([self.subgoal])))
-        self.subgoal_achieved = environment_next_state[0] == self.subgoal
+        self.subgoal_achieved = environment_next_state[0] == self.option
         self.reward = 1.0 * self.subgoal_achieved
         self.done = self.subgoal_achieved or self.episode_over
 
@@ -151,25 +159,25 @@ class h_DQN_with_MOC(Base_Agent):
         else:
             self.next_option = self.option
 
-        action_ratios=np.zeros((self.meta_controller_config.noptions))
-        for o in range(self.meta_controller_config.noptions):
+        action_ratios=np.zeros((self.meta_controller_config.hyperparameters["noptions"]))
+        for o in range(self.meta_controller_config.hyperparameters["noptions"]):
             action_ratios[o] = self.option_policies[o].pmf(self.phi)[0][self.action]
         action_ratios= action_ratios / action_ratios[self.option]
         self.action_ratios_avg.append(action_ratios)
 
 
         # Prob of current option
-        one_hot = np.zeros(self.meta_controller_config.noptions)
+        one_hot = np.zeros(self.meta_controller_config.hyperparameters["noptions"])
         if self.last_option is not None:
             bet = self.option_terminations[self.last_option].pmf(self.phi)
             one_hot[self.last_option] = 1.
         else:
             bet = 1.0
         prob_curr_opt = bet * self.meta_policy.pmf(self.phi) + (1-bet)*one_hot
-        one_hot_curr_opt= np.zeros(self.meta_controller_config.noptions)
+        one_hot_curr_opt= np.zeros(self.meta_controller_config.hyperparameters["noptions"])
         one_hot_curr_opt[self.option] = 1.
-        sampled_eta = float(np.random.rand() < self.meta_controller_config.eta)
-        prob_curr_opt= self.meta_controller_config.eta * prob_curr_opt + (1 - self.meta_controller_config.eta) * one_hot_curr_opt
+        sampled_eta = float(np.random.rand() < self.meta_controller_config.hyperparameters["eta"])
+        prob_curr_opt= self.meta_controller_config.hyperparameters["eta"] * prob_curr_opt + (1 - self.meta_controller_config.hyperparameters["eta"]) * one_hot_curr_opt
 
 
     
@@ -178,9 +186,9 @@ class h_DQN_with_MOC(Base_Agent):
 
 
         # Intra-option policy update
-        critic_feedback = self.reward + self.meta_controller_config.discount * self.critic.value(self.next_phi, self.next_option)
+        critic_feedback = self.reward + self.meta_controller_config.hyperparameters["discount"] * self.critic.value(self.next_phi, self.next_option)
         critic_feedback -= self.critic.value(self.phi, self.option)
-        if self.meta_controller_config.multi_option:
+        if self.meta_controller_config.hyperparameters["multi_option"]:
             self.intraoption_improvement.update(self.phi, self.option, self.action, self.reward, self.done, self.next_phi, self.next_option, critic_feedback,
                 action_ratios, prob_curr_opt)   
         else:
@@ -192,5 +200,5 @@ class h_DQN_with_MOC(Base_Agent):
             self.termination_improvement.update(self.next_phi, self.option, one_hot_curr_opt)
         
         self.last_option = self.option
-        self.phi = self.next_option
+        self.phi = self.next_phi
         self.option = self.next_option

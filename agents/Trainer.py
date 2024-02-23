@@ -43,7 +43,8 @@ class Trainer(object):
             "HRL": "HRL",
             "Model_HRL": "HRL",
             "DIAYN": "DIAYN",
-            "Dueling DDQN": "DQN_Agents"
+            "Dueling DDQN": "DQN_Agents",
+            "h_DQN_with_MOC": "h_DQN_with_MOC"
         }
         return agent_to_agent_group_dictionary
 
@@ -67,7 +68,8 @@ class Trainer(object):
             "A2C": "#F1948A",
             "SAC": "#1C2833",
             "DIAYN": "#F322CD",
-            "HRL": "#0E0F0F"
+            "HRL": "#0E0F0F",
+            "h_DQN_with_MOC": "#D35400"
         }
         return agent_to_color_dictionary
 
@@ -80,8 +82,8 @@ class Trainer(object):
             if self.config.visualise_overall_agent_results:
                 agent_rolling_score_results = [results[1] for results in  self.results[agent_name]]
                 self.visualise_overall_agent_results(agent_rolling_score_results, agent_name, show_mean_and_std_range=True)
-        # if self.config.file_to_save_data_results: self.save_obj(self.results, self.config.file_to_save_data_results)
-        # if self.config.file_to_save_results_graph: plt.savefig(self.config.file_to_save_results_graph, bbox_inches="tight")
+        if self.config.file_to_save_data_results: self.save_obj(self.results, self.config.file_to_save_data_results)
+        if self.config.file_to_save_results_graph: plt.savefig(self.config.file_to_save_results_graph, bbox_inches="tight")
         plt.show()
         return self.results
 

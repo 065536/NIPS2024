@@ -32,7 +32,7 @@ class Four_Rooms_Environment(gym.Env):
         self.action_to_effect_dict = {0: "North", 1: "East", 2: "South", 3:"West"}
         self.current_user_location = None
         self.current_goal_location = None
-        self.reward_for_achieving_goal = (self.grid_width + self.grid_height) * 3.0
+        self.reward_for_achieving_goal = (self.grid_width + self.grid_height) * 10.0
         self.step_reward_for_not_achieving_goal = -1.0
         self.state_only_dimension = 1
         self.num_possible_states = self.grid_height * self.grid_width

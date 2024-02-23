@@ -13,9 +13,10 @@ class DQN_With_Fixed_Q_Targets(DQN):
 
     def learn(self, experiences=None):
         """Runs a learning iteration for the Q network"""
-        super(DQN_With_Fixed_Q_Targets, self).learn(experiences=experiences)
+        loss = super(DQN_With_Fixed_Q_Targets, self).learn(experiences=experiences)
         self.soft_update_of_target_network(self.q_network_local, self.q_network_target,
                                            self.hyperparameters["tau"])  # Update the target network
+        return loss
 
     def compute_q_values_for_next_states(self, next_states):
         """Computes the q_values for next state we will use to create the loss to train the Q network"""
